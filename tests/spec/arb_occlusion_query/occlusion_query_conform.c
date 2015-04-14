@@ -39,7 +39,7 @@
 #include <string.h>
 #include <stdio.h>
 #include <math.h>
-
+#include <time.h>
 
 PIGLIT_GL_TEST_CONFIG_BEGIN
 
@@ -94,7 +94,8 @@ setup()
 GLuint 
 find_unused_id()
 {
-	RandomBits idRand(32, 183485);
+	/* used the regular random number generator. */
+	srand((unsigned)time(NULL));
 	unsigned int id;
 	int counter = 0;
 
@@ -102,7 +103,7 @@ find_unused_id()
 
 	while (1) {
 		/* assuming that at least 2^32-1 <id> can be generated */
-		id = idRand.next();
+		id = rand();
 		if (id != 0 && glIsQueryARB(id) == GL_FALSE)
 			return id;
 		if (++ counter >= MAX_FIND_ID_ROUND) {
@@ -312,7 +313,7 @@ conformOQ_Begin_unused_id()
 	glBeginQuery(GL_SAMPLES_PASSED_ARB, id);
 
 	if (glIsQueryARB(id) == GL_FALSE) {
-		printf("%s :Error : Begin with a unused id failed.", glIsQueryARB(id));
+		printf("Error : Begin with a unused id failed.");
 		pass = false;
 	}
 
@@ -514,7 +515,7 @@ conformOQ_Gen_Delete(unsigned int id_n)
 	ids2 = (GLuint *)malloc(id_n * sizeof(GLuint));
 
 	if (!ids1 || !ids2) {
-		reportError("Cannot alloc memory to pointer ids[12].");
+		printf(" Error: Cannot alloc memory to pointer ids[12].\n");
 		if (ids1)
 			free(ids1);
 		if (ids2)
@@ -600,4 +601,85 @@ conformOQ_Gen_Delete(unsigned int id_n)
 }
 
 
+/* If <id> is zero, IsQueryARB should return FALSE.*/
+bool
+conformOQ_IsIdZero(void)
+{
+	if (glIsQueryARB(0) == GL_TRUE) {
+		printf(" Error: zero is treated as a valid id by glIsQueryARB().\n");
+		return false;
+	}
+		
+	return true;
+}
 
+
+/* If BeginQueryARB is called with an <id> of zero, an INVALID_OPERATION error
+ * should be generated. */
+bool
+conformOQ_BeginIdZero(void)
+{
+	glBeginQueryARB(GL_SAMPLES_PASSED_ARB, 0);
+	if (glGetError() != GL_INVALID_OPERATION) {
+		printf(" Error: No GL_INVALID_OPERATION generated if "
+			"BeginQuery with zero ID.");
+		return false;
+	}
+
+	return true;
+}
+
+
+void
+piglit_init(int argc, char **argv)
+{
+	glClearColor(0.0, 0.2, 0.3, 0.0);
+	glClearDepth(1.0);
+
+	glEnable(GL_DEPTH_TEST);
+	glDepthFunc(GL_LESS);
+
+	piglit_require_extension("GL_ARB_occlusion_query");
+	piglit_ortho_projection(piglit_width, piglit_height, GL_FALSE);
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+}
+
+
+enum piglit_result
+piglit_display(void)
+{
+	bool pass = true;
+	GLuint queryId;
+
+	if (!chk_ext())
+		return PIGLIT_FAIL;
+	setup();
+	glEnable(GL_DEPTH_TEST);
+	glGenQueriesARB(1, &queryId);
+
+	if (queryId == 0)
+		return PIGLIT_FAIL;
+
+#if defined(GL_ARB_occlusion_query)
+	pass &= conformOQ_GetQry_CnterBit();
+	pass &= conformOQ_GetObjivAval_multi1(queryId);
+	pass &= conformOQ_GetObjivAval_multi2();
+	pass &= conformOQ_Begin_unused_id();
+	pass &= conformOQ_EndAfter(queryId);
+	pass &= conformOQ_GenIn(queryId);
+	pass &= conformOQ_BeginIn(queryId);
+	pass &= conformOQ_DeleteIn(queryId);
+	pass &= conformOQ_GetObjAvalIn(queryId);
+	pass &= conformOQ_GetObjResultIn(queryId);
+	pass &= conformOQ_GetObjivAval(queryId);
+	pass &= conformOQ_Gen_Delete(64);
+	pass &= conformOQ_IsIdZero();
+	pass &= conformOQ_BeginIdZero();
+	glDeleteQueriesARB(1, &queryId);
+
+	piglit_present_results();
+#endif
+
+	return pass ?  PIGLIT_PASS: PIGLIT_FAIL;
+}
