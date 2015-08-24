@@ -9,7 +9,8 @@ link_libraries (
 	${OPENGL_glu_LIBRARY}
 )
 
-piglit_add_executable (occlusion_query occlusion_query.c)
+piglit_add_executable (occlusion_query occlusion_query.c)    
+piglit_add_executable (occlusion_query_conformance occlusion_query_conform.c)
 piglit_add_executable (occlusion_query_lifetime occlusion_query_lifetime.c)
 piglit_add_executable (occlusion_query_meta_no_fragments occlusion_query_meta_no_fragments.c)
 piglit_add_executable (occlusion_query_meta_fragments occlusion_query_meta_fragments.c)
