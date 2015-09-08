@@ -486,7 +486,14 @@ piglit_init(int argc, char **argv)
 
 	piglit_require_extension("GL_EXT_texture_integer");
 
-	assert(format);
+	if (format == NULL) {
+		int i;
+		printf("Invalid format.  Valid formats:\n");
+
+		for (i = 0; i < ARRAY_LENGTH(formats); i++)
+			printf("  %s\n", formats[i].name);
+		exit(1);
+	}
 
 	signed_prog = piglit_build_simple_program(NULL, frag_shader_signed_src);
 	unsigned_prog = piglit_build_simple_program(NULL, frag_shader_unsigned_src);
@@ -716,7 +723,7 @@ run_test(GLenum test_format, GLenum test_type, float *time_out)
 	Bpp = bytes_per_pixel(test_format, test_type);
 
 	if (test_type == GL_FLOAT) {
-		/* Sanatize so we don't get invalid floating point values */
+		/* Sanitize so we don't get invalid floating point values */
 		tmp = malloc(texture_size * texture_size * channels * sizeof(float));
 		for (i = 0; i < texture_size * texture_size * channels; ++i)
 			tmp[i] = sn_to_float(32, ((GLint *)rand_data)[i]);
@@ -800,7 +807,7 @@ test_exact()
 	Bpp = bytes_per_pixel(format->format, format->data_type);
 
 	if (format->data_type == GL_FLOAT) {
-		/* Sanatize so we don't get invalid floating point values */
+		/* Sanitize so we don't get invalid floating point values */
 		tmp_float = malloc(texture_size * texture_size *
 				   channels * sizeof(float));
 		for (i = 0; i < texture_size * texture_size * channels; ++i)

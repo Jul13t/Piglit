@@ -144,12 +144,6 @@ def add_msaa_formats_tests(adder, extension):
               'multisample-formats {} {}'.format(num_samples, extension))
 
 
-def add_vpfpgeneric(adder, name):
-    adder(['vpfp-generic',
-           os.path.join(TESTS_DIR, 'shaders', 'generic', name + '.vpfp')],
-          name)
-
-
 def add_texwrap_target_tests(adder, target):
     adder(['texwrap', target, 'GL_RGBA8'],
           'texwrap {}'.format(target))
@@ -2106,6 +2100,7 @@ with profile.group_manager(
      g(['arb_gpu_shader_fp64-tf-interleaved'])
      g(['arb_gpu_shader_fp64-tf-interleaved-aligned'])
      g(['arb_gpu_shader_fp64-getuniformdv'])
+     g(['arb_gpu_shader_fp64-wrong-type-setter'])
 
 with profile.group_manager(
         PiglitGLTest,
@@ -3128,6 +3123,7 @@ with profile.group_manager(
     g(['ext_texture_integer-getteximage-clamping'], 'getteximage-clamping')
     g(['ext_texture_integer-getteximage-clamping', 'GL_ARB_texture_rg'],
       'getteximage-clamping GL_ARB_texture_rg')
+    g(['ext_texture_integer-texformats']),
     g(['ext_texture_integer-texture_integer_glsl130'],
       'texture_integer_glsl130')
     g(['fbo-integer'], run_concurrent=False)
@@ -3897,6 +3893,7 @@ with profile.group_manager(
     g(['arb_copy_image-formats', '--samples=2'])
     g(['arb_copy_image-formats', '--samples=4'])
     g(['arb_copy_image-formats', '--samples=8'])
+    g(['arb_copy_image-format-swizzle'])
 
 with profile.group_manager(
         PiglitGLTest, grouptools.join('spec', 'arb_cull_distance')) as g:
